@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html style="height: 100%; width: 100%;">
 <head>
-	<title>colored val text - beau</title>
+	<title>colored val text - beaujibby</title>
 </head>
-<body style="display: flex; flex-direction: column; align-items: center; margin-top: 10%; background-color: #222;">
-	<h1 style="color: #eee; font-size: 300%">beaujibby's valorant color translator</h1>
-	<p style="color: #eee; font-size: 200%;">input text:</p>
+<body style="display: flex; flex-direction: column; align-items: center; margin-top: 10%; background-color: #222; font-family: 'Lucida Console', 'Courier New', 'monospace';">
+	<h1 style="color: #eee; font-size: 300%">beaujibby's valorant color encoder</h1>
+	<p style="color: #eee; font-size: 200%; font-weight: bolder">input text:</p>
 	<textarea id="chat_msg" style="min-width: 30%; min-height: 40%; align-self: center;"></textarea>
-	<p style="color: #eee; font-size: 200%; font-weight: bolder;">color code (options are <span style="color: #ff2803;">r</span>, <span style="color: #f0d800;">y</span>, <span style="color: #2dff3d;">g</span>, <span style="color: #3397ff;">b</span>, <span style="color: #9f57ff;">p</span>, <span style="color: #888;">x</span>):</p>
+	<p style="color: #eee; font-size: 200%; font-weight: bolder;">color code (options are <span style="color: #ff2803;">r</span>, <span style="color: #f0d800;">y</span>, <span style="color: #2dff3d;">g</span>, <span style="color: #3397ff;">b</span>, <span style="color: #9f57ff;">p</span>, <span style="color: #888;">x</span>, w):</p>
 	<input id="color_code" style="min-width: 30%; align-self: center;">
-	<p style="color: #eee; font-size: 200%;">result:</p>
+	<p style="color: #eee; font-size: 200%; font-weight: bolder;">result:</p>
 	<p id="output" style="margin-top: 20px; color: #eee"></p>
 	<button id="copy_button" style="min-width: 200px; min-height: 50px;">copy result</button>
 	<input hidden id="copy_field">
@@ -21,7 +21,9 @@
 			"g":"<notification>",
 			"b":"<team>",
 			"p":"<whisper>",
-			"x":"<observer>"
+			"x":"<observer>",
+			"w": "white",
+			"z": "random color" //randomly select from non-white, non-grey colors only
 		};
 
 		let text_box = document.querySelector("#chat_msg");
@@ -44,14 +46,31 @@
 				}
 				else {
 					let color = colors[code[(i - spaces_offset) % code.length]];
-					if(color == undefined) {
+
+					if(color == undefined) { //invalid color code, choose one at random
 						color = colors[Object.keys(colors)[Math.floor(Object.keys(colors).length * Math.random())]];
 					}
-					result += color + text[i] + "</>";
+
+					switch(color) {
+						case "white": //white specified, don't put any tags around text
+							result += text[i];
+							break;
+
+						case "random color": //randomly select from non-white, non-grey colors only
+							color = colors[Object.keys(colors)[Math.floor(5 * Math.random())]];
+							result += color + text[i] + "</>";
+							break;
+						default: //normal color, put tags around text
+							result += color + text[i] + "</>";
+							break;
+					}
 				}
 			}
 			result_element.innerText = result;
 			copy_element.value = result;
+
+			copy_button.innerText = "not copied";
+			copy_button.style.setProperty("background-color", "#fcc");
 
 		}
 
@@ -60,6 +79,7 @@
 
 		let copy_button = document.querySelector("#copy_button");
 		copy_button.onclick = () => {
+			console.log("poggies");
 			let range = document.createRange();
 			range.selectNode(copy_element);
 			window.getSelection().removeAllRanges();
@@ -67,7 +87,10 @@
 			window.getSelection().addRange(range);
 			document.execCommand("copy");
 			window.getSelection().removeAllRanges();
-			copy_element.setAttribute("hidden", true)
+			copy_element.setAttribute("hidden", true);
+
+			copy_button.innerText = "copied to clipboard";
+			copy_button.style.setProperty("background-color", "#cfc");
 		}
 	</script>
 </body>
