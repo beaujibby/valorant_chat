@@ -16,14 +16,14 @@
 
 	<script>
 		let colors = {
-			"r":"<enemy>",
-			"y":"<system>",
-			"g":"<notification>",
-			"b":"<team>",
-			"p":"<whisper>",
-			"x":"<observer>",
-			"w": "white",
-			"z": "random color" //randomly select from non-white, non-grey colors only
+			"r": {"open": "<enemy>", "close": "</>"},
+			"y": {"open": "<system>", "close": "</>"},
+			"g": {"open": "<notification>", "close": "</>"},
+			"b": {"open": "<team>", "close": "</>"},
+			"p": {"open": "<whisper>", "close": "</>"},
+			"x": {"open": "<observer>", "close": "</>"},
+			"w": {"open": "", "close": ""},
+			"z": "random color" //randomly select from non-white, non-grey colors only, currently not supported
 		};
 
 		let text_box = document.querySelector("#chat_msg");
@@ -31,17 +31,37 @@
 		let result_element = document.querySelector("#output");
 		let copy_element = document.querySelector("#copy_field");
 
+		let optimizeEncoding = (input) => {
+			let result = "";
+
+			let open_tag = "";
+			let close_tag = "";
+
+			for(let i = 0; i < input.length; i++) {
+				if(input[i].open != open_tag) {
+					result += close_tag;
+					open_tag = input[i].open;
+					close_tag = input[i].close;
+					result += open_tag;
+				}
+				result += input[i].text;
+			}
+			result += close_tag;
+			return result;
+		}
+
 		let translateText = () => {
 
 			let spaces_offset = 0;
+			let latent_spaces = "";
 
 			let text = text_box.value;
-			let code = color_box.value;
-			let result = "";
+			let code = color_box.value || "z";
+			let encoded_text = [];
 
 			for(let i = 0; i < text.length; i++) {
 				if(text[i] == " ") {
-					result += " ";
+					latent_spaces += text[i];
 					spaces_offset++;
 				}
 				else {
@@ -51,23 +71,20 @@
 						color = colors[Object.keys(colors)[Math.floor(Object.keys(colors).length * Math.random())]];
 					}
 
-					switch(color) {
-						case "white": //white specified, don't put any tags around text
-							result += text[i];
-							break;
-
-						case "random color": //randomly select from non-white, non-grey colors only
-							color = colors[Object.keys(colors)[Math.floor(5 * Math.random())]];
-							result += color + text[i] + "</>";
-							break;
-						default: //normal color, put tags around text
-							result += color + text[i] + "</>";
-							break;
+					if(color == "random color") {
+						color = colors[Object.keys(colors)[Math.floor(5 * Math.random())]];
 					}
+
+					console.log("a"+latent_spaces+"a");
+					encoded_text.push({"open":color.open, "text": latent_spaces+text[i], "close": color.close});
+					latent_spaces = "";
 				}
 			}
-			result_element.innerText = result;
-			copy_element.value = result;
+
+			encoded_text = optimizeEncoding(encoded_text);
+
+			result_element.innerText = encoded_text;
+			copy_element.value = encoded_text;
 
 			copy_button.innerText = "not copied";
 			copy_button.style.setProperty("background-color", "#fcc");
